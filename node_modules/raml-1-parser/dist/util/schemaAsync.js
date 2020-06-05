@@ -1,0 +1,58 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var xmlutil = require("./xmlutil");
+var contentprovider = require("./contentprovider");
+var def = require("raml-definition-system");
+var su = def.getSchemaUtils();
+function isScheme(content) {
+    if (!content || !content.trim() || content.trim().charAt(0) != "{") {
+        return false;
+    }
+    try {
+        var schemeObject = JSON.parse(content);
+        return schemeObject && (typeof schemeObject === "object");
+    }
+    catch (exception) {
+        return xmlutil.isXmlScheme(content);
+    }
+}
+exports.isScheme = isScheme;
+function startDownloadingReferencesAsync(schemaContent, unit) {
+    if (xmlutil.isXmlScheme(schemaContent)) {
+        return su.getXMLSchema(schemaContent, new contentprovider.ContentProvider(unit)).loadSchemaReferencesAsync().then(function () { return unit; });
+    }
+    var schemaObject = su.getJSONSchema(schemaContent, new contentprovider.ContentProvider(unit));
+    var missedReferences = schemaObject.getMissingReferences([]).map(function (reference) { return schemaObject.contentAsync(reference); });
+    if (missedReferences.length === 0) {
+        return Promise.resolve(unit);
+    }
+    var allReferences = Promise.all(missedReferences);
+    var result = getRefs(allReferences, schemaObject);
+    return result.then(function () { return unit; });
+}
+exports.startDownloadingReferencesAsync = startDownloadingReferencesAsync;
+function getReferences(schemaContent, unit) {
+    var schemaObject = su.createSchema(schemaContent, new contentprovider.ContentProvider(unit));
+    if (schemaObject && schemaObject.getMissingReferences) {
+        return schemaObject.getMissingReferences([], true);
+    }
+    return [];
+}
+exports.getReferences = getReferences;
+function getRefs(promise, schemaObject) {
+    return promise.then(function (references) {
+        if (references.length > 0) {
+            var missedRefs = schemaObject.getMissingReferences(references);
+            if (missedRefs.length === 0) {
+                return [];
+            }
+            var promises = [];
+            missedRefs.forEach(function (ref) {
+                promises.push(schemaObject.contentAsync(ref));
+            });
+            return getRefs(Promise.all(promises.concat(references)), schemaObject);
+        }
+        return Promise.resolve([]);
+    });
+}
+//# sourceMappingURL=schemaAsync.js.map

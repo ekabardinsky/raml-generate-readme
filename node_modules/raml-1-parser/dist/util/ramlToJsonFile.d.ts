@@ -1,0 +1,7 @@
+import parserCoreApi = require('../parser/wrapped-ast/parserCoreApi');
+export interface Options extends parserCoreApi.Options {
+    outputJsonFolder?: string;
+    ignoreMeta?: boolean;
+    postfix?: string;
+}
+export declare function saveToJson(apiPath: string, arg1?: string[] | Options, arg2?: string[] | Options): void;

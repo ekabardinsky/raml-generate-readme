@@ -1,0 +1,1 @@
+export declare function readFromCacheOrGet(url: string): any;

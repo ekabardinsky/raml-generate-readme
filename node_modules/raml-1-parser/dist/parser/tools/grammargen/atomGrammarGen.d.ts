@@ -1,0 +1,2 @@
+import def = require("raml-definition-system");
+export declare function composeGrammar(u: def.Universe): string;

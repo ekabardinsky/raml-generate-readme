@@ -1,0 +1,10 @@
+export interface IPathWatcher {
+    close(): any;
+}
+export declare class File {
+    private path;
+    constructor(path: string);
+    getPath(): string;
+    close(): void;
+}
+export declare function watch(path: string, f: (event: any, newFileName: any) => void): IPathWatcher;

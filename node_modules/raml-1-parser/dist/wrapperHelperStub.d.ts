@@ -1,0 +1,9 @@
+import api = require("./parser/artifacts/raml10parserapi");
+export declare function completeRelativeUri(res: api.Resource): string;
+export interface Opt<T> {
+    getOrElse(v: T): T;
+}
+export interface SchemaDef {
+    name(): any;
+    content(): any;
+}

@@ -1,0 +1,99 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var path = require("path");
+var ll = require("../parser/lowLevelAST");
+var resourceRegistry = require("../parser/jsyaml/resourceRegistry");
+var ContentProvider = /** @class */ (function () {
+    function ContentProvider(unit) {
+        this.unit = unit;
+    }
+    ContentProvider.prototype.contextPath = function () {
+        if (!this.unit) {
+            return "";
+        }
+        var rootPath = this.unit.absolutePath();
+        return rootPath || "";
+    };
+    ContentProvider.prototype.normalizePath = function (url) {
+        if (!url) {
+            return url;
+        }
+        var result;
+        if (!isWebPath(url)) {
+            result = path.normalize(url).replace(/\\/g, "/");
+        }
+        else {
+            var prefix = url.toLowerCase().indexOf('https') === 0 ? 'https://' : 'http://';
+            result = prefix + path.normalize(url.substring(prefix.length)).replace(/\\/g, "/");
+        }
+        return result;
+    };
+    ContentProvider.prototype.content = function (reference) {
+        var normalized = this.normalizePath(reference);
+        //Absolute local paths are understand as relative to rootRAML
+        //by 'unit.resolve()'. In order to make it understand the input properly,
+        //all absolute local paths must be switched to relative form
+        var unitPath = this.toRelativeIfNeeded(normalized);
+        var unit = this.unit.resolve(unitPath);
+        if (!unit) {
+            return "";
+        }
+        return unit.contents() || "";
+    };
+    ContentProvider.prototype.contentAsync = function (reference) {
+        var normaized = this.normalizePath(reference);
+        //Absolute local paths are understand as relative to rootRAML
+        //by 'unit.resolveAsync()'. In order to make it understand the input properly,
+        //all absolute local paths must be switched to relative form
+        var unitPath = this.toRelativeIfNeeded(normaized);
+        var unitPromise = this.unit.resolveAsync(unitPath);
+        if (!unitPromise) {
+            return Promise.resolve("");
+        }
+        var result = unitPromise.then(function (unit) {
+            return (unit && unit.contents()) || "";
+        });
+        return result;
+    };
+    ContentProvider.prototype.toRelativeIfNeeded = function (normaized) {
+        var unitPath = normaized;
+        if (path.isAbsolute(normaized) && !isWebPath(normaized) && !isWebPath(this.unit.absolutePath())) {
+            unitPath = path.relative(path.dirname(this.unit.absolutePath()), normaized);
+        }
+        return unitPath;
+    };
+    ContentProvider.prototype.hasAsyncRequests = function () {
+        return resourceRegistry.hasAsyncRequests();
+    };
+    ContentProvider.prototype.resolvePath = function (context, relativePath) {
+        //Using standard way of resolving references occured in RAML specs
+        return ll.buildPath(relativePath, context, this.unit.project().getRootPath());
+    };
+    ContentProvider.prototype.isAbsolutePath = function (uri) {
+        if (!uri) {
+            return false;
+        }
+        if (isWebPath(uri)) {
+            return true;
+        }
+        return path.isAbsolute(uri);
+    };
+    ContentProvider.prototype.promiseResolve = function (arg) {
+        return Promise.resolve(arg);
+    };
+    ContentProvider.prototype.rootPath = function () {
+        return this.unit.project().getRootPath();
+    };
+    ContentProvider.prototype.isWebPath = function (p) {
+        return ll.isWebPath(p);
+    };
+    ContentProvider.prototype.relativePath = function (from, to) {
+        return path.relative(from, to);
+    };
+    return ContentProvider;
+}());
+exports.ContentProvider = ContentProvider;
+function isWebPath(str) {
+    return ll.isWebPath(str);
+}
+//# sourceMappingURL=contentprovider.js.map

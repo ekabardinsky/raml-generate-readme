@@ -1,0 +1,55 @@
+import coreApi = require("../parser/wrapped-ast/parserCoreApi");
+import core = require("../parser/wrapped-ast/parserCore");
+import def = require("raml-definition-system");
+import hl = require("../parser/highLevelAST");
+import typeSystem = def.rt;
+import nominals = typeSystem.nominalTypes;
+export declare function dump(node: coreApi.BasicNode | coreApi.AttributeNode, serializeMeta?: boolean): any;
+export declare class JsonSerializer {
+    private options?;
+    constructor(options?: SerializeOptions);
+    private nodeTransformers;
+    private nodePropertyTransformers;
+    private ignore;
+    private missingProperties;
+    printMissingProperties(): string;
+    dump(node: any): any;
+    dumpInternal(node: any, rootNodeDetails?: boolean, isRoot?: boolean, nodeProperty?: hl.IProperty): any;
+    private canBeFragment;
+    private dumpErrors;
+    private dumpErrorBasic;
+    private stringLooksLikeXML;
+    private stringLooksLikeJSON;
+    private dumpProperties;
+    serializeScalarsAnnotations(obj: any, node: coreApi.BasicNode | coreApi.AttributeNode, props: {
+        [key: string]: nominals.IProperty;
+    }): void;
+    serializeMeta(obj: any, node: coreApi.BasicNode | coreApi.AttributeNode): void;
+    serializeTypeInstance(inst: core.TypeInstanceImpl): any;
+    serializeTypeInstanceProperty(prop: core.TypeInstancePropertyImpl): any;
+    isDefined(node: any, name: any): boolean;
+}
+export interface SerializeOptions {
+    /**
+     * For root nodes additional details can be included into output. If the option is set to `true`,
+     * node content is returned as value of the **specification** root property. Other root properties are:
+     *
+     * * **ramlVersion** version of RAML used by the specification represented by the node
+     * * **type** type of the node: Api, Overlay, Extension, Library, or any other RAML type in fragments case
+     * * **errors** errors of the specification represented by the node
+     * @default false
+     */
+    rootNodeDetails?: boolean;
+    /**
+     * Whether to serialize metadata
+     * @default true
+     */
+    serializeMetadata?: boolean;
+    dumpXMLRepresentationOfExamples?: boolean;
+    dumpSchemaContents?: boolean;
+    /**
+     * Whether to serialize source maps
+     */
+    sourceMap?: boolean;
+}
+export declare function isEmpty(nc: nominals.ITypeDefinition): boolean;

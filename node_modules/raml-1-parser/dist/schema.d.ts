@@ -1,0 +1,22 @@
+import ll = require("./parser/lowLevelAST");
+import schemaGenApi = require("./parser/tools/schemaModelGenApi");
+export interface Schema {
+    getType(): string;
+    validate(content: string): void;
+    validateObject(object: any): void;
+}
+export declare function dereference(schemaPath: string, jsonReference: string): string;
+export declare function createSchema(c: string, u: ll.ICompilationUnit): Schema;
+export declare function getXMLSchema(c: string): Schema;
+export declare function getJSONSchema(c: string, u: ll.ICompilationUnit): Schema;
+export interface IncludeReference {
+    getFragments(): string[];
+    getIncludePath(): string;
+    asString(): string;
+    encodedName(): string;
+}
+export declare function completeReference(includePath: string, includeReference: IncludeReference, content: string): string[];
+export declare function getIncludePath(p: string): string;
+export declare function getIncludeReference(p: string): IncludeReference;
+export declare function createSchemaModelGenerator(): schemaGenApi.SchemaToModelGenerator;
+export declare function createModelToSchemaGenerator(): schemaGenApi.ModelToSchemaGenerator;
